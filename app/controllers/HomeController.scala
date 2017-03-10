@@ -1,8 +1,15 @@
 package controllers
 
+import java.util
 import javax.inject._
+
 import play.api._
+import play.api.data.Form
 import play.api.mvc._
+import models.Account
+
+import scala.collection.immutable.HashMap
+import scala.concurrent.Future
 
 /**
  * This controller creates an `Action` to handle HTTP requests to the
@@ -11,14 +18,14 @@ import play.api.mvc._
 @Singleton
 class HomeController @Inject() extends Controller {
 
-  /**
-   * Create an Action to render an HTML page with a welcome message.
-   * The configuration in the `routes` file means that this method
-   * will be called when the application receives a `GET` request with
-   * a path of `/`.
-   */
-  def index = Action {
-    Ok(views.html.index("Your new application is ready."))
+  var accounts = new util.ArrayList[Account]
+
+  def saveInformation =  Action { request =>
+    val account = request.body.asJson.get.as[Account]
+    accounts.add(account)
+
+    Ok
   }
 
 }
+
