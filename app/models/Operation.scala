@@ -1,34 +1,39 @@
 package models
 
-import org.joda.time._
+
+
+import org.joda.time.{DateTime, LocalDate}
+import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import play.api.libs.json._
 
 /**
   * Created by felipe on 09/03/17.
   */
 
-case class Operation( operationType: String, operationValue: String, operationDate: String)
+case class Operation( operationType: String, operationBalance: Double, operationDate: DateTime)
 
 object Operation {
 
   implicit object OperationFormat extends Format[Operation]{
 
     def reads( json: JsValue): JsResult[Operation] = {
-      val operationType  = (json \ "operationType").as[String]
-      val operationValue = (json \ "operationValue").as[String]
-      val operationDate  = (json \ "operationDate").as[String]
+      var operationType  = (json \ "operationType").as[String]
+      var operationValue = (json \ "operationBalance").as[Double]
+
+      var formatter: DateTimeFormatter  = DateTimeFormat.forPattern("dd/MM/yyyy")
+      var operationDate: DateTime       = formatter.parseDateTime((json \ "operationDate").as[String])
 
       JsSuccess(Operation(operationType, operationValue, operationDate))
     }
 
     def writes(operation: Operation): JsValue = {
-      val operationAsList = Seq(
+      var operationAsList = Seq(
         "operationType"  -> JsString(operation.operationType),
-        "operationValue" -> JsString(operation.operationValue),
-        "operationDate"  -> JsString(operation.operationDate) )
+        "operationValue" -> JsNumber(operation.operationBalance),
+        "operationDate"  -> JsString(operation.operationDate.toString()) )
 
       JsObject(operationAsList)
     }
-
   }
+
 }
