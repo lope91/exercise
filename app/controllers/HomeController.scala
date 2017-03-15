@@ -1,5 +1,6 @@
 package controllers
 
+import java.text.DecimalFormat
 import java.util
 import java.util.{Collections, Comparator}
 import javax.inject._
@@ -78,19 +79,19 @@ class HomeController @Inject() extends Controller {
 
   def getStatement =  Action { request =>
 
-    var accountNumber   = request.getQueryString("accountNumber").get
-    var startDate       = request.getQueryString("startDate").get
-    var finalDate       = request.getQueryString("finalDate").get
+    val accountNumber   = request.getQueryString("accountNumber").get
+    val startDate       = request.getQueryString("startDate").get
+    val finalDate       = request.getQueryString("finalDate").get
     var message: String = ""
 
     if (accounters.contains(accountNumber)) {
 
-      var formatter: DateTimeFormatter  = DateTimeFormat.forPattern("dd/MM/yyyy")
-      var startDateFormatted: DateTime  = formatter.parseDateTime(startDate)
-      var finalDateFormatted: DateTime  = formatter.parseDateTime(finalDate)
-      var interval: Interval            = new Interval(startDateFormatted, finalDateFormatted)
+      val formatter: DateTimeFormatter  = DateTimeFormat.forPattern("dd/MM/yyyy")
+      val startDateFormatted: DateTime  = formatter.parseDateTime(startDate)
+      val finalDateFormatted: DateTime  = formatter.parseDateTime(finalDate)
+      val interval: Interval            = new Interval(startDateFormatted, finalDateFormatted)
 
-      var currentAccount = accounters.get(accountNumber)
+      val currentAccount = accounters.get(accountNumber)
 
       for(i <- 0 to currentAccount.get.operations.size() - 1) {
         if(interval.contains(currentAccount.get.operations.get(i).operationDate)){
@@ -107,6 +108,53 @@ class HomeController @Inject() extends Controller {
       Ok("Unknown Bank account")
     }
 
+    Ok
+  }
+
+  def getPeriodsOfDebt(accountNumber: String) = Action { request =>
+
+    if (accounters.contains(accountNumber)) {
+
+      val currentAccount          = accounters.get(accountNumber)
+      var currentBalance: Double  = 0
+      var debtValue: Double       = 0
+      var debtStartDate: DateTime = null
+      var debtEndDate: DateTime   = null
+      var status: String          = ""
+      var msg: String             = ""
+      val formatDecimal: DecimalFormat = new DecimalFormat("0.##")
+
+
+      for(i <- 0 to currentAccount.get.operations.size() - 1) {
+
+        currentAccount.get.operations.get(i).operationType match {
+          case "C" => currentBalance += currentAccount.get.operations.get(i).operationBalance
+          case "D" => currentBalance -= currentAccount.get.operations.get(i).operationBalance
+        }
+
+        if(currentBalance < 0) {
+          status         = "N"
+          debtValue      = currentBalance * -1
+          if(debtStartDate == null) debtStartDate  = currentAccount.get.operations.get(i).operationDate
+
+        } else {
+          if (status.equals("N")) {
+            debtEndDate = currentAccount.get.operations.get(i).operationDate
+            println("Valor devido: %f \nData de Inicio: %s \nData Final: %s \n\n".format(formatDecimal.format(debtValue), debtStartDate.toString(), debtEndDate.toString()))
+          }
+          status = "P"
+          debtStartDate = null
+        }
+
+      }
+
+      if(status.equals("N")){
+        println("Valor devido: %f \nData de Inicio: %s \n\n".format(formatDecimal.format(debtValue)., debtStartDate.toString()))
+      }
+
+    } else {
+      Ok("Unknown Bank account")
+    }
 
     Ok
   }

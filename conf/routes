@@ -7,6 +7,7 @@ POST    /saveTransaction                    controllers.HomeController.saveTrans
 
 # An example controller showing a sample home page
 GET    /getCurrentBalance/:accountNumber    controllers.HomeController.getCurrentBalance(accountNumber: String)
+GET    /getPeriodsOfDebt/:accountNumber     controllers.HomeController.getPeriodsOfDebt(accountNumber: String)
 # GET    /getStatement                        controllers.HomeController.getStatement
 GET    /getStatement                        controllers.HomeController.getStatement
 # An example controller showing how to use dependency injection
