@@ -33,6 +33,7 @@ class HomeController @Inject() extends Controller {
   putting and taking money out of the account.
   */
   def saveTransaction =  Action { request =>
+
     /* Receiving the account operation via JSON */
     val json = request.body.asJson.get
 
@@ -64,7 +65,7 @@ class HomeController @Inject() extends Controller {
             )
           )
         } catch {
-          case e: Exception => Ok(Json.toJson(Map("Error" -> e.getMessage)))
+          case e: Exception => Status(500)(Json.toJson(Map("Error" -> e.getMessage)))
         }
 
       }
@@ -88,15 +89,13 @@ class HomeController @Inject() extends Controller {
         accounts.put(accountNumber, json.as[Account])
       } catch {
         // If the operation isn't of a known type, the exception is raised
-        case e: Exception => Ok(Json.toJson(Map("Error" -> e.getMessage)))
+        case e: Exception => Status(500)(Json.toJson(Map("Error" -> e.getMessage)))
       }
 
 
       // Respond in payload format
       Ok(Json.toJson(Map("Message" -> "Account created and transaction completed successfully")))
     }
-
-    Ok
   }
 
   def getCurrentBalance(accountNumber: String) =  Action { request =>
@@ -111,7 +110,7 @@ class HomeController @Inject() extends Controller {
       )
     } else {
       // Respond in payload format
-      Ok(
+      Status(500)(
         Json.toJson(Map[String, String]("Error" -> "Unknown bank account"))
       )
     }
@@ -151,7 +150,7 @@ class HomeController @Inject() extends Controller {
         if(interval.contains(currentAccount.get.operations.get(i).operationDate)){
 
           mapStatement = mapStatement.:+(Json.toJson(Map(
-            "Transaction Date" -> Json.toJson(currentAccount.get.operations.get(i).operationDate),
+            "Transaction Date" -> Json.toJson(currentAccount.get.operations.get(i).operationDate.toString()),
             "Operation Type" -> Json.toJson(currentAccount.get.getFullDescription(currentAccount.get.operations.get(i).operationType)),
             "Transaction Description" -> Json.toJson(currentAccount.get.operations.get(i).description),
             "Transaction Value" -> Json.toJson(currentAccount.get.operations.get(i).operationBalance),
@@ -164,7 +163,7 @@ class HomeController @Inject() extends Controller {
       Ok(Json.toJson(Map("Statement" -> mapStatement)))
 
     } else {
-      Ok(Json.toJson(Map("Error" -> "Unknown Bank account")))
+      Status(500)(Json.toJson(Map("Error" -> "Unknown Bank account")))
     }
 
   }
@@ -242,7 +241,7 @@ class HomeController @Inject() extends Controller {
 
     } else {
       // Account unknown (response in payload format)
-      Ok(
+      Status(500)(
         Json.toJson(Map("Error" -> "Unknown bank account"))
       )
     }
