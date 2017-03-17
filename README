@@ -1,49 +1,48 @@
-This is your new Play application
+Describing the development done
 =================================
 
-This file will be packaged with your application when using `activator dist`.
 
-There are several demonstration files available in this template.
 
-Controllers
-===========
+How-to: Build and run the code
+=================================
 
-- HomeController.scala:
+1) At the command prompt, access a folder that is empty on your computer and run the command below:
 
-  Shows how to handle simple HTTP requests.
+git clone https://github.com/lope91/exercise.git
 
-- AsyncController.scala:
+Obs.: enter your credentials, if necessary, and the repository will be downloaded to your computer. If you want, you can download the repository via github, acessing
 
-  Shows how to do asynchronous programming when handling a request.
+https://github.com/lope91/exercise
 
-- CountController.scala:
+And click in "Clone or Download" -> "Download ZIP"
 
-  Shows how to inject a component into a controller and use the component when
-  handling requests.
+2) Access the folder of the downloaded repository by typing the command below:
 
-Components
-==========
+cd exercise
 
-- Module.scala:
+3) After this, using the activator, type the command below:
 
-  Shows how to use Guice to bind all the components needed by your application.
+Activator run
 
-- Counter.scala:
+Wait for the system to download the dependencies and start the server.
 
-  An example of a component that contains state, in this case a simple counter.
+4) From the moment the server is already started, you can start using the services created as requested. Here are examples of how to perform these services:
 
-- ApplicationTimer.scala:
+4.1) Creating a transaction for an account:
 
-  An example of a component that starts when the application starts and stops
-  when the application stops.
+curl --header "Content-type: application/json" --request POST --data '{"number": "111222", "operationDescription": "Transaction Test", "operationType": "CRE", "operationBalance": 30.10, "operationDate": "10/03/2017"}' http://localhost:9000/saveTransaction
 
-Filters
-=======
+The types of operation are:
+CRE: Credit, DEB: Debit, SAL: Salary, PUR: Purchase, WIT: Withdrawal and DEP: Deposit
 
-- Filters.scala:
+4.2) Checking your account balance:
 
-  Creates the list of HTTP filters used by your application.
+curl --header "Content-type: application/json" --request GET  "http://localhost:9000/getCurrentBalance/111222"
 
-- ExampleFilter.scala
+4.3) Getting your account statement:
 
-  A simple filter that adds a header to every response.
+curl --header "Content-type: application/json" --request GET  "http://localhost:9000/getStatement?accountNumber=111222&startDate=07/03/2017&finalDate=15/03/2017"
+
+4.4) Getting yours period of debt:
+
+curl --header "Content-type: application/json" --request GET  "http://localhost:9000/getPeriodsOfDebt/111222"
