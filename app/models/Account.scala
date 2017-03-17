@@ -3,14 +3,32 @@ package models
 import java.util
 
 import play.api.libs.json._
+import com.google.gson._
+
 
 /**
   * Created by felipe on 09/03/17.
   */
-case class Account(currentBalance: Double, operations: util.ArrayList[Operation]){
-  def operate(operationType: String, value: Double): Account = operationType match {
-    case "C" => this.copy(this.currentBalance.+(value), this.operations)
-    case "D" => this.copy(this.currentBalance.-(value), this.operations)
+case class Account(currentBalance: Double = 0, operations: util.ArrayList[Operation]){
+  def updateBalance(operationType: String, value: Double): Account = operationType match {
+    case "DEP" | "SAL" | "CRE" => this.copy(this.currentBalance.+(value), this.operations)
+    case "PUR" | "WIT" | "DEB" => this.copy(this.currentBalance.-(value), this.operations)
+    case _ => throw new Exception("Unknown transaction type for this account.")
+  }
+
+  def getFullDescription(operationType: String): String = operationType match {
+    case "DEP" => "Deposit"
+    case "SAL" => "Salary"
+    case "CRE" => "Credit"
+    case "PUR" => "Purchase"
+    case "WIT" => "Withdrawal"
+    case "DEB" => "Debit"
+  }
+
+  def operate( balanceValue: Double, transactionValue: Double, operationType: String): Double = operationType match {
+    case "DEP" | "SAL" | "CRE" => balanceValue.+(transactionValue)
+    case "PUR" | "WIT" | "DEB" => balanceValue.-(transactionValue)
+    case _ => throw new Exception("Unknown transaction type for this account.")
   }
 }
 
@@ -20,29 +38,28 @@ object Account {
 
     def reads(json: JsValue): JsResult[Account] = {
 
-      var operations             = (json).as[Operation]
+      var operations = json.as[Operation]
       var arrayOperations: util.ArrayList[Operation] = new util.ArrayList[Operation]()
       arrayOperations.add(operations)
 
-      var operationValue: Double = 0
-      if(operations.operationType.equals("C")){
-        operationValue = operationValue + operations.operationBalance
-      } else {
-        operationValue = operationValue - operations.operationBalance
+      var acc: Account = Account(0, arrayOperations)
+      try {
+        acc = acc.updateBalance(operations.operationType, operations.operationBalance)
+      } catch {
+        case e: Exception => throw new Exception(e.getMessage)
       }
 
-      JsSuccess(Account(operationValue, arrayOperations))
-
+      JsSuccess(acc)
     }
 
     def writes(account: Account): JsValue = {
-      var accountAsList = Seq("currentBalance" -> JsString(account.currentBalance.toString()),
-                              "operations"     -> JsString(account.operations.toString()))
+
+      var accountAsList = Seq("currentBalance" -> JsNumber(account.currentBalance),
+                              "operations"     ->  JsString(new Gson().toJson(account.operations)))
 
       JsObject(accountAsList)
     }
 
   }
-
 
 }
